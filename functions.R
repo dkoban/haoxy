@@ -42,6 +42,22 @@ extract_misinfo_tag <- function(x){
   tag
 }
 
+# Plot edge data by tweet types
+plot_tweet_activity_by_type <- function(edges){
+  
+  edges$tweet_created_at <- edges$tweet_created_at %>% 
+    as.POSIXct(format = "%Y-%m-%dT%H:%M:%S.000Z")
+  
+  ggplot(data = edges,
+         mapping = aes(x = tweet_created_at,
+                       y = tweet_type)) +
+    geom_jitter(size = 0.2) + 
+    scale_x_datetime(breaks=date_breaks("24 hour"), labels=date_format("%m-%d")) +
+    labs(title = edges$title,
+         x = "Tweet Created At",
+         y = "Tweet Type")
+}
+
 # DDS for logistic growth
 logistic_growth <- function(p0, baseline_r, novel_exposure_limit, n){
   pn = p0
@@ -77,7 +93,6 @@ plot_theortical <- function(empirical_data, baseline_tweet_likelihood){
 # plot theoretical model with observed data
 plot_empirical_theoretical <- function(empirical_data, baseline_tweet_likelihood){
   empirical <- empirical_data
-  
   theoretical <- data_frame(t = 0:round(max(empirical_data$t)),
                             user_count = sapply(t, 
                                                 logistic_growth, 
@@ -93,3 +108,38 @@ plot_empirical_theoretical <- function(empirical_data, baseline_tweet_likelihood
     labs(x = "Time (Hours)", y = "Cascade Size (Number of Exposed Users)", 
          title = paste0(empirical_data$title[1]))
   }
+
+# Plot empirical theoretical data with a facet grid
+plot_empirical_theoretical_facet <- function(empirical_data, baseline_tweet_likelihood){
+  
+  titles <- empirical_data$title %>% unique()
+  models <- list()
+  for (i in 1:length(titles)){
+    models[[i]] <- data_frame(t = 0:round(max(empirical_data[empirical_data$title==titles[i], ]$t)),
+                         user_count = sapply(t, 
+                                             logistic_growth, 
+                                             p0 = empirical_data$user_count[empirical_data$t == 0 & 
+                                                                              empirical_data$title == titles[i]] , 
+                                             baseline_r = baseline_tweet_likelihood,
+                                             novel_exposure_limit = max(empirical_data$user_count[empirical_data$title == titles[i]])),
+                         title = titles[i],
+                         type = "model")  
+  }
+  models <- bind_rows(models)
+  stacked_df <- bind_rows(empirical_data %>% mutate(type = "empirical"), models) %>%
+    filter(t <= 72)
+  
+  ggplot(data = stacked_df,
+         mapping = aes(x = t, y = user_count)) +
+    geom_point(data = stacked_df %>% filter(type == "empirical"), 
+               size = 0.25) +
+    geom_line(data = stacked_df %>% filter(type == "model"),
+              mapping = aes(x = t, y = user_count), 
+              color = "blue") +
+    labs(x = "Time (Hours)", y = "Cascade Size (Number of Exposed Users)") +
+    facet_wrap(.~title, ncol = 3,
+               labeller = labeller(title = label_wrap_gen(120),
+                                   multi_line = TRUE)) +
+    theme(strip.text = element_text(size = 6))
+}
+

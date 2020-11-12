@@ -10,7 +10,7 @@ source("~/Documents/hoaxy/functions.R")
 #install_local("~/Documents/EM6740/cascade_data/hoaxy-master", force = TRUE)
 
 #########################################################################################
-# Get Hoaxy Data - COVID
+# Get Hoaxy Data 
 #########################################################################################
 library(tidyverse)
 library(stringr)
@@ -19,8 +19,8 @@ library(RColorBrewer)
 
 # query Hoaxy for titles
 hoaxy_key('')
-#covid_articles <- hx_articles("covid")
-latest_articles <- hx_latest_articles(past_hours = 30)
+#articles <- hx_articles("covid")
+#articles <- hx_latest_articles(past_hours = 30)
 
 # extract tags
 latest_articles$tag <- NA
@@ -104,3 +104,29 @@ ggplotly(p)
 vaccine_articles <- hx_articles("vaccine")
 covid_vaccine_articles <- hx_articles("vaccine OR COVID")
 
+#########################################################################################
+# Get Hoaxy Top Stories
+#########################################################################################
+# Query Hoaxy API for top articles
+articles <- hx_top_articles()
+
+# Query Hoaxy for edges
+temp <- hx_articles(str_replace_all(articles$title[6], " ", " AND "))
+temp <- temp[1, ]
+
+# query Hoaxy for edges
+edges <- hx_edges(temp$id) %>% as_tibble()
+file_name <- paste0("~/Documents/hoaxy/", 
+       temp$title %>% str_sub(1, 60) %>% 
+         str_replace_all("([[:punct:]])", "") %>%
+         str_replace_all(" ", "_"), ".csv")
+write.csv(edges, file = file_name, row.names = FALSE)
+
+# extract timeline cascade time-series
+cascade <- bin_empirical_data(file_name)
+cascade <- cascade %>% distinct()
+file_name <- paste0("~/Documents/hoaxy/", 
+                    temp$title %>% str_sub(1, 60) %>% 
+                      str_replace_all("([[:punct:]])", "") %>%
+                      str_replace_all(" ", "_"), "_cascade.csv")
+write.csv(cascade, file = file_name, row.names=FALSE)
