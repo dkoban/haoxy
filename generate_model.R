@@ -26,11 +26,14 @@ plots[[i]] <- plot_empirical_theoretical(empirical_data = cascades %>%
                                            filter(title == titles[i]),
                                          baseline_tweet_likelihood = 1)}
 
-# Plot facet grid of articles
-plot_empirical_theoretical_facet(empirical_data = cascades %>%
-                                   filter(title %in% titles[1:15]),
-                                 baseline_tweet_likelihood = 1)
+# Plot facet grid of articles: empirical
+plot_empirical_facet(empirical_data = cascades %>%
+                       filter(title %in% titles[2:10]))
 
+# Plot facet grid of articles: empirical and theoretical
+plot_empirical_theoretical_facet(empirical_data = cascades %>%
+                                   filter(title %in% titles[1:12]),
+                                 baseline_tweet_likelihood = 1)
 
 # Vensim lookup generator
 vensim_data <- cascades[cascades$title == titles[10],] %>% distinct()

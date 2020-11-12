@@ -86,7 +86,7 @@ plot_theortical <- function(empirical_data, baseline_tweet_likelihood){
   ggplot(data = plotdf,
          mapping = aes(x = t, y = user_count)) +
     geom_line() + 
-    labs(x = "Time (Hours)", y = "Cascade Size (Number of Exposed Users)", 
+    labs(x = "Time (Hours)", y = "Cascade Size (Number of Active Users)", 
          title = paste0(empirical_data$title[1]))
   }
 
@@ -105,7 +105,7 @@ plot_empirical_theoretical <- function(empirical_data, baseline_tweet_likelihood
     geom_line(data = theoretical,
               mapping = aes(x = t, y = user_count), 
               color = "blue") +
-    labs(x = "Time (Hours)", y = "Cascade Size (Number of Exposed Users)", 
+    labs(x = "Time (Hours)", y = "Cascade Size (Number of Active Users)", 
          title = paste0(empirical_data$title[1]))
   }
 
@@ -136,10 +136,27 @@ plot_empirical_theoretical_facet <- function(empirical_data, baseline_tweet_like
     geom_line(data = stacked_df %>% filter(type == "model"),
               mapping = aes(x = t, y = user_count), 
               color = "blue") +
-    labs(x = "Time (Hours)", y = "Cascade Size (Number of Exposed Users)") +
+    labs(x = "Time (Hours)", y = "Cascade Size (Number of Active Users)") +
     facet_wrap(.~title, ncol = 3,
                labeller = labeller(title = label_wrap_gen(120),
                                    multi_line = TRUE)) +
     theme(strip.text = element_text(size = 6))
 }
 
+# Plot empirical theoretical data with a facet grid
+plot_empirical_facet <- function(empirical_data){
+  
+  titles <- empirical_data$title %>% unique()
+  stacked_df <- bind_rows(empirical_data %>% mutate(type = "empirical")) %>%
+    filter(t <= 72)
+  
+  ggplot(data = stacked_df,
+         mapping = aes(x = t, y = user_count)) +
+    geom_point(data = stacked_df %>% filter(type == "empirical"), 
+               size = 0.25) +
+    labs(x = "Time (Hours)", y = "Cascade Size (Number of Active Users)") +
+    facet_wrap(.~title, ncol = 3,
+               labeller = labeller(title = label_wrap_gen(120),
+                                   multi_line = TRUE)) +
+    theme(strip.text = element_text(size = 6))
+}
