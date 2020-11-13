@@ -25,7 +25,7 @@ library(stringr)
 library(hoaxy)
 library(RColorBrewer)
 source("~/Documents/hoaxy/functions.R")
-hoaxy_key('0880bcabb3msh438e3c173ab19cap10f5a0jsn4713569913e5')
+hoaxy_key('')
 ```
 
 ## Query Hoaxy for recent articles
@@ -35,7 +35,7 @@ articles <- hx_latest_articles(past_hours = 30)
 articles$tag <- extract_misinfo_tags(articles)
 ```
 
-## Filter articles to likely misinformation stories
+## Filter article list for likely misinformation stories
 
 ```{r}
 misinfo_tags <- c("clickbait", "conspiracy", "junksci", 
@@ -44,4 +44,13 @@ articles <- articles %>% filter(tag %in% misinfo_tags)
 articles$tag %>% table()
 ```
 
+## Query an article or multiple articles for Hoaxy edges
+
+```{r}
+paste0(articles$tag[488], " - ", articles$title[488])
+```
+
+```{r}
+edges <- hx_edges(articles$id[1], nodes_limit = 50000)
+```
 

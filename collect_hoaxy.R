@@ -23,9 +23,9 @@ hoaxy_key('')
 articles <- hx_latest_articles(past_hours = 30)
 
 # extract tags
-latest_articles$tag <- NA
-for (i in 1:length(latest_articles$site_tags)){
-  latest_articles$tag[i] <- extract_misinfo_tag(latest_articles$site_tags[i])
+articles$tag <- NA
+for (i in 1:length(articles$site_tags)){
+  articles$tag[i] <- extract_misinfo_tag(articles$site_tags[i])
 }
 
 # extract tags; filter on non NA tags
