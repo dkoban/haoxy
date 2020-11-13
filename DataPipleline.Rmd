@@ -27,6 +27,7 @@ library(stringr)
 library(hoaxy)
 library(RColorBrewer)
 library(scales)
+library(rtweet)
 source("~/Documents/hoaxy/functions.R")
 hoaxy_key('')
 ```
@@ -147,6 +148,19 @@ ggplot(data = activity_by_hour,
        y = "Count") 
 ```
 
+Verify our cumulative user count matches the distinct user count from the original data
+
+```{r}
+# Distinct users in the original data
+c(top_article$from_user_id, top_article$to_user_id) %>% unique() %>% length()
+```
+
+```{r}
+# Max value of time series data
+activity_by_hour$tot_users %>% max()
+```
+
+
 ## Generate Vensim lookup variable text string
 
 Round time values to integers and average counts for each period
@@ -176,8 +190,73 @@ vensim_string <- vensim_string %>% paste0(collapse = ", ")
 vensim_string
 ```
 
+## Enrich with Twitter account information
 
+Enter API keys.
 
+```{r}
+twitter_token <- create_token(
+  app = "",
+  consumer_key = "",
+  consumer_secret = "",
+  access_token = "",
+  access_secret = "")
+```
 
+Query Twitter for user info.
 
+```{r}
+unique_users <- c(top_article$from_user_id, top_article$to_user_id) %>% 
+  unique()
+user_info <- lookup_users(users = unique_users)
+follower_counts <- user_info %>% select(user_id, screen_name, followers_count)
+follower_counts %>% arrange(desc(followers_count)) %>% head(10)
+```
 
+Merge with the edge data
+
+```{r}
+merged <- top_article %>% 
+  left_join(follower_counts %>% 
+              select(from_user_id = user_id, 
+                     from_followers_count = followers_count)) %>%
+  left_join(follower_counts %>% 
+              select(to_user_id = user_id, 
+                     to_followers_count = followers_count))
+
+merged %>% select(from_user_screen_name, from_followers_count,
+                  to_user_screen_name, to_followers_count,
+                  tweet_type, tweet_created_at)
+```
+
+## Identify burst seeds 
+
+```{r}
+burst_seed_window <- c(0, 0.15)
+burst1_seeds <- merged %>% filter(h >= burst_seed_window[1],
+                                  h <= burst_seed_window[2]) %>%
+  select(from_user_id, from_user_screen_name, from_followers_count) %>% 
+  distinct()
+burst1_seeds
+```
+
+```{r}
+burst_seed_window <- c(14, 15)
+burst2_seeds <- merged %>% filter(h >= burst_seed_window[1],
+                                  h <= burst_seed_window[2]) %>%
+  select(from_user_id, from_user_screen_name, from_followers_count) %>% 
+  distinct()
+burst2_seeds
+```
+
+## Average burst seed follower counts
+
+```{r}
+burst1_followers <- burst1_seeds$from_followers_count %>% mean()
+burst2_followers <- burst2_seeds$from_followers_count %>% mean()
+
+print(paste0("Burst-1: ", nrow(burst1_seeds), " seeds, ",
+             ceiling(burst1_followers), " followers"))
+print(paste0("Burst-2: ", nrow(burst2_seeds), " seeds, ",
+       ceiling(burst2_followers), " followers"))
+```
