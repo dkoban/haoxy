@@ -1,7 +1,5 @@
 Hoaxy Data Pipeline
 ================
-Dan Koban
-11/13/2020
 
 The following document describes an automated workflow for the following
 tasks:
@@ -10,16 +8,33 @@ tasks:
 2.  Enrich Twitter user accounts with profile information
 3.  Generate time series data for us in Vensim
 
-## Get data
+## Load libraries and functions
 
 ``` r
-summary(cars)
+library(tidyverse)
+library(stringr)
+library(hoaxy)
+library(RColorBrewer)
+source("~/Documents/hoaxy/functions.R")
+hoaxy_key('')
 ```
 
-    ##      speed           dist       
-    ##  Min.   : 4.0   Min.   :  2.00  
-    ##  1st Qu.:12.0   1st Qu.: 26.00  
-    ##  Median :15.0   Median : 36.00  
-    ##  Mean   :15.4   Mean   : 42.98  
-    ##  3rd Qu.:19.0   3rd Qu.: 56.00  
-    ##  Max.   :25.0   Max.   :120.00
+## Query Hoaxy for recent articles
+
+``` r
+articles <- hx_latest_articles(past_hours = 30)
+articles$tag <- extract_misinfo_tags(articles)
+```
+
+## Filter articles to likely misinformation stories
+
+``` r
+misinfo_tags <- c("clickbait", "conspiracy", "junksci", 
+                  "junkscience", "hoax", "fake")
+articles <- articles %>% filter(tag %in% misinfo_tags)
+articles$tag %>% table()
+```
+
+    ## .
+    ##  clickbait conspiracy       hoax 
+    ##        283        195         13

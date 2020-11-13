@@ -20,7 +20,7 @@ library(RColorBrewer)
 # query Hoaxy for titles
 hoaxy_key('')
 #articles <- hx_articles("covid")
-#articles <- hx_latest_articles(past_hours = 30)
+articles <- hx_latest_articles(past_hours = 30)
 
 # extract tags
 latest_articles$tag <- NA

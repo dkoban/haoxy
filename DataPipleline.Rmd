@@ -1,12 +1,14 @@
 ---
 title: "Hoaxy Data Pipeline"
-author: "Dan Koban"
-date: "11/13/2020"
 output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
 ```
 
 The following document describes an automated workflow for the following tasks:
@@ -15,8 +17,31 @@ The following document describes an automated workflow for the following tasks:
 2. Enrich Twitter user accounts with profile information
 3. Generate time series data for us in Vensim
 
-## Get data
+## Load libraries and functions
 
 ```{r cars}
-summary(cars)
+library(tidyverse)
+library(stringr)
+library(hoaxy)
+library(RColorBrewer)
+source("~/Documents/hoaxy/functions.R")
+hoaxy_key('0880bcabb3msh438e3c173ab19cap10f5a0jsn4713569913e5')
 ```
+
+## Query Hoaxy for recent articles
+
+```{r}
+articles <- hx_latest_articles(past_hours = 30)
+articles$tag <- extract_misinfo_tags(articles)
+```
+
+## Filter articles to likely misinformation stories
+
+```{r}
+misinfo_tags <- c("clickbait", "conspiracy", "junksci", 
+                  "junkscience", "hoax", "fake")
+articles <- articles %>% filter(tag %in% misinfo_tags)
+articles$tag %>% table()
+```
+
+

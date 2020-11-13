@@ -42,6 +42,15 @@ extract_misinfo_tag <- function(x){
   tag
 }
 
+#extract misinfo tags
+extract_misinfo_tags <- function(articles){
+  articles$tag <- NA
+  for (i in 1:length(articles$site_tags)){
+    articles$tag[i] <- extract_misinfo_tag(articles$site_tags[i])
+  }
+  return(articles$tag)
+}
+
 # Plot edge data by tweet types
 plot_tweet_activity_by_type <- function(edges){
   
