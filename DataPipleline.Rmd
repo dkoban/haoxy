@@ -105,4 +105,79 @@ ggplot(data = top_article,
          y = "Tweet Type")
 ```
 
+## Parse time series data
+
+Caculate differences between time of activity and time of first activity.
+
+```{r}
+top_article <- top_article %>% 
+    mutate(h_hour = min(tweet_created_at)) %>%
+    mutate(h = as.numeric(difftime(tweet_created_at, h_hour), units = "hours"))
+```
+
+Plot cumulative tweet activity and active users over time
+
+- Activity: number of tweet `created_at` time stamps <= t
+- Active User: count of unique users who have posted before time t
+
+```{r}
+time_increments <- top_article$h %>% unique() %>% sort()
+
+activity_by_hour <- tibble(t = time_increments, 
+                           tot_activity = NA,
+                           tot_users = NA)
+
+for (i in 1:length(time_increments)){
+  activity_by_hour$tot_activity[i] = sum(top_article$h <= time_increments[i])
+  activity_by_hour$tot_users[i] = 
+    c(top_article$from_user_id[top_article$h <= time_increments[i]],
+      top_article$to_user_id[top_article$h <= time_increments[i]]) %>%
+    unique() %>% length()
+  }
+
+ggplot(data = activity_by_hour,
+         mapping = aes(x = t, y = tot_activity)) +
+  geom_point(size = 0.25, aes(color = "tot_activity")) + 
+  geom_point(data = activity_by_hour,
+             mapping = aes(x = t, y = tot_users,
+                           color = "tot_users"),
+             size = 0.25) +
+  labs(title = "Cumulative Activity / Active Users by Hour",
+       x = "Time (Hours)",
+       y = "Count") 
+```
+
+## Generate Vensim lookup variable text string
+
+Round time values to integers and average counts for each period
+
+```{r}
+vensim_data <- activity_by_hour %>%
+  mutate(t = t %>% ceiling()) %>%
+  group_by(t) %>% 
+  summarise(tot_users = tot_users %>% mean() %>% ceiling())
+
+N <- nrow(vensim_data)
+vensim_data$change <- c(0,
+      vensim_data$tot_users[2:N] - vensim_data$tot_users[1:(N-1)])
+vensim_data %>% head()
+```
+
+Generate lookup table string where each value represents 
+
+```{r}
+vensim_string <- c()
+for (i in 1:nrow(vensim_data)){
+  vensim_string[i] <- paste0("(", vensim_data$t[i], ", ", 
+                             vensim_data$change[i], ")")}
+
+vensim_string <- c(vensim_string[-length(vensim_string)])
+vensim_string <- vensim_string %>% paste0(collapse = ", ")
+vensim_string
+```
+
+
+
+
+
 
