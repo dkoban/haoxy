@@ -17,7 +17,7 @@ library(hoaxy)
 library(RColorBrewer)
 library(scales)
 source("~/Documents/hoaxy/functions.R")
-hoaxy_key('2b584e8cdcmshd9e59585deed9d6p114a43jsn73cc6214f62d')
+hoaxy_key('')
 ```
 
 ## Query Hoaxy for recent articles
