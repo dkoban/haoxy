@@ -1,0 +1,22 @@
+---
+title: "Hoaxy Data Pipeline"
+author: "Dan Koban"
+date: "11/13/2020"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The following document describes an automated workflow for the following tasks:
+
+1. Collect Tweet data from Hoaxy
+2. Enrich Twitter user accounts with profile information
+3. Generate time series data for us in Vensim
+
+## Get data
+
+```{r cars}
+summary(cars)
+```
